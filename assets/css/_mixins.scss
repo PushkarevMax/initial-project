@@ -1,0 +1,88 @@
+//Opacity
+//example:
+//@include opacity(.3);
+@mixin opacity($value) {
+  opacity: $value;
+  filter: progid:DXImageTransform.Microsoft.Alpha(opacity=$value*100);
+}
+
+//Display
+//example:
+//@include display(inline-block, top);
+@mixin display($display, $va) {
+  display: $display;
+  vertical-align: $va;
+}
+
+//example:
+//@include multi-linear-gradient(to bottom, #0c366a 0%, #051832 100%, #2989d8 100%);
+@mixin multi-linear-gradient($gradients...) {
+  background-image: -webkit-linear-gradient($gradients);
+  background-image:    -moz-linear-gradient($gradients);
+  background-image:     -ms-linear-gradient($gradients);
+  background-image:      -o-linear-gradient($gradients);
+  background-image:         linear-gradient($gradients);
+}
+
+@mixin multi-linear-gradient-ie($fromColor, $toColor) {
+  filter: progid:DXImageTransform.Microsoft.gradient(GradientType=0,StartColorStr='#{$fromColor}', EndColorStr='#{$toColor}');
+}
+
+//Transition
+//example:
+//@include transition(all, .3);
+@mixin transition($what, $time) {
+  -webkit-transition: $what $time;
+  -moz-transition: $what $time;
+  -ms-transition: $what $time;
+  -o-transition: $what $time;
+  transition: $what $time;
+}
+
+//  Element position.
+//   example:
+//   @include position(0 null) - position: absolute; top: 0; bottom: 0;
+//   @include position(fixed, 0) - position: fixed; top: 0; bottom: 0; left: 0; right: 0;
+//   @include position(relative, 0 10px) - position: fixed; top: 0; bottom: 0; left: 10px; right: 0px;
+//   @include position(0 10px null 20px) - position: absolute; top: 0; right: 10px; left: 20px;
+
+@function unpackOffsets($listName) {
+  @if length($listName) == 1 {
+    @return nth($listName, 1) nth($listName, 1) nth($listName, 1) nth($listName, 1);
+  }
+  @else if length($listName) == 2 {
+    @return nth($listName, 1) nth($listName, 2) nth($listName, 1) nth($listName, 2);
+  }
+  @else if length($listName) == 3 {
+    @return nth($listName, 1) nth($listName, 2) nth($listName, 3) nth($listName, 2);
+  }
+  @else {
+    @return $listName;
+  }
+}
+
+@mixin position($position: absolute, $coordinates: null null null null) {
+  @if (type-of($position) == list) or (type-of($position) == number) {
+    $coordinates: $position;
+    $position: absolute;
+  }
+
+  $coordinates: unpackOffsets($coordinates);
+  $top: nth($coordinates, 1);
+  $right: nth($coordinates, 2);
+  $bottom: nth($coordinates, 3);
+  $left: nth($coordinates, 4);
+  position: $position;
+  @if ($top and $top == auto) or (type-of($top) == number) {
+    top: $top;
+  }
+  @if ($right and $right == auto) or (type-of($right) == number) {
+    right: $right;
+  }
+  @if ($bottom and $bottom == auto) or (type-of($bottom) == number) {
+    bottom: $bottom;
+  }
+  @if ($left and $left == auto) or (type-of($left) == number) {
+    left: $left;
+  }
+}
