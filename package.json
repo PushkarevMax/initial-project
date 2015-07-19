@@ -6,10 +6,11 @@
   "author": "Max Pushkarev",
   "license": "MIT",
   "devDependencies": {
-    "gulp": "~3.3.1",
+    "gulp": "~3.8.11",
     "gulp-autoprefixer": "~2.3.1",
     "gulp-concat": "~2.6.0",
     "gulp-imagemin": "~2.3.0",
+    "imagemin-pngquant": "^4.1.2",
     "gulp-livereload": "~3.8.0",
     "gulp-minify-css": "~1.2.0",
     "gulp-rename": "~1.2.2",
