@@ -1,0 +1,10 @@
+{
+  "name": "initial-project",
+  "version": "0.0.1",
+  "dependencies": {
+    "modernizr-min": "~3.2.0",
+    "jquery": "~2.2.3",
+    "normalize-scss": "~3.0.3"
+  },
+  "private": true
+}

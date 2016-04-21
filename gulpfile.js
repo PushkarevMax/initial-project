@@ -1,93 +1,88 @@
-// Load plugins
+"use strict";
+
 var gulp = require('gulp'),
 	sass = require('gulp-sass'),
-	autoprefixer = require('gulp-autoprefixer'),
-	cssnano = require('gulp-cssnano'),
+	postcss = require('gulp-postcss'),
+	autoprefixer = require('autoprefixer'),
+	cssnano = require('cssnano'),
+	nunjucksRender = require('gulp-nunjucks-render'),
+	concat = require('gulp-concat'),
+	server = require("browser-sync"),
 	uglify = require('gulp-uglify'),
+	sourcemaps = require('gulp-sourcemaps'),
 	imagemin = require('gulp-imagemin'),
 	pngquant = require('imagemin-pngquant'),
+	del = require('del'),
 	rename = require('gulp-rename'),
-	concat = require('gulp-concat'),
-	sourcemaps = require('gulp-sourcemaps'),
-	connect = require('gulp-connect'),
-	layout = require('gulp-nunjucks-render');
+	runSequence = require('run-sequence').use(gulp);
 
-// Styles
+gulp.task('layout', function () {
+	nunjucksRender.nunjucks.configure(['src/njc/templates/']);
+	return gulp.src(['src/njc/pages/**/*.+(html|njc)'])
+		.pipe(nunjucksRender())
+		.pipe(gulp.dest('build'))
+		.pipe(server.reload({stream: true}));
+});
+
 gulp.task('styles', function () {
-	return gulp.src('assets/css/style.scss')
+	var processors = [
+		autoprefixer({
+			browsers: ['last 2 versions']
+		}),
+		cssnano
+	];
+	return gulp.src('src/scss/style.scss')
 		.pipe(sourcemaps.init())
-		.pipe(sass())
+		.pipe(sass().on('error', sass.logError))
+		.pipe(postcss(processors))
 		.pipe(sourcemaps.write())
-		.pipe(autoprefixer({
-			browsers: ['last 2 versions'],
-			cascade: false
-		}))
-		.pipe(gulp.dest('dev/css'))
-		.pipe(rename({suffix: '.min'}))
-		.pipe(cssnano())
-		.pipe(gulp.dest('dev/css'))
-		.pipe(connect.reload());
+		.pipe(gulp.dest('build/css'))
+		.pipe(server.reload({stream: true}));
 });
 
-// Scripts
-gulp.task('scripts', function () {
-	return gulp.src(['assets/js/vendor/*.js', 'assets/js/*.js'])
-		.pipe(concat('scripts.js'))
-		.pipe(gulp.dest('dev/js'))
-		.pipe(rename({suffix: '.min'}))
-		.pipe(uglify())
-		.pipe(gulp.dest('dev/js'))
-		.pipe(connect.reload());
-});
-
-// Images
 gulp.task('images', function () {
-	return gulp.src('assets/img/**/*')
+	return gulp.src('src/img/**/*')
 		.pipe(imagemin({
 			progressive: true,
 			svgoPlugins: [{removeViewBox: false}],
 			use: [pngquant()]
 		}))
-		.pipe(gulp.dest('dev/img'))
-		.pipe(connect.reload());
+		.pipe(gulp.dest('build/img'))
+		.pipe(server.reload({stream: true}));
 });
 
-// Layout
-gulp.task('layout', function () {
-	return gulp.src(['assets/templates/*.html'])
-		.pipe(layout())
-		.pipe(gulp.dest('dev'))
-		.pipe(connect.reload());
+gulp.task('scripts', function () {
+	return gulp.src([
+			'bower_components/jquery/dist/jquery.js',
+			'bower_components/modernizr-min/src/modernizr-build.js',
+			'src/js/*.js'
+		])
+		.pipe(concat('scripts.js'))
+		.pipe(gulp.dest('build/js'))
+		.pipe(rename({suffix: '.min'}))
+		.pipe(uglify())
+		.pipe(gulp.dest('build/js'))
+		.pipe(server.reload({stream: true}));
 });
 
-// Connect
-gulp.task('connect', function () {
-	connect.server({
-		root: 'dev',
-		livereload: true
+gulp.task('clean', function () {
+	del('build/*');
+});
+
+gulp.task('build', function(callback) {
+	runSequence('clean','layout','styles','scripts','images',callback)
+});
+
+gulp.task("serve", ['layout','styles','scripts','images'], function() {
+	server.init({
+		server: "build",
+		notify: false,
+		open: true,
+		ui: false
 	});
+
+	gulp.watch("src/**/*.{scss,sass}", ["styles"]);
+	gulp.watch("src/**/*.+(html|njc)", ["layout"]);
+	gulp.watch("src/**/*.js", ["scripts"]);
+	gulp.watch("src/**/*.+(jpg,png,svg)", ["images"]);
 });
-
-// Default task
-gulp.task('build', function () {
-	gulp.start('styles', 'scripts', 'images');
-});
-
-// Watch
-gulp.task('watch', function () {
-
-	// Watch .scss files
-	gulp.watch('assets/css/**/*.scss', ['styles']);
-
-	// Watch .js files
-	gulp.watch('assets/js/**/*.js', ['scripts']);
-
-	// Watch image files
-	gulp.watch('assets/img/**/*', ['images']);
-
-	// Watch hmtl files
-	gulp.watch('assets/**/*.html', ['layout']);
-
-});
-
-gulp.task('default', ['connect', 'watch']);
