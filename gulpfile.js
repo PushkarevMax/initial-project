@@ -54,7 +54,7 @@ gulp.task('images', function () {
 gulp.task('scripts', function () {
 	return gulp.src([
 			'bower_components/jquery/dist/jquery.js',
-			'bower_components/modernizr-min/src/modernizr-build.js',
+			'bower_components/modernizr1/modernizr.js',
 			'src/js/*.js'
 		])
 		.pipe(concat('scripts.js'))

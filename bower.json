@@ -2,7 +2,7 @@
   "name": "initial-project",
   "version": "0.0.1",
   "dependencies": {
-    "modernizr-min": "~3.2.0",
+    "modernizr1": "~2.8.3",
     "jquery": "~2.2.3",
     "normalize-scss": "~3.0.3"
   },
