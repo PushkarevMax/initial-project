@@ -1,2 +1,3 @@
-@import "../../bower_components/normalize-scss/normalize.scss";
-@import "index";
+@import "../../node_modules/normalize-scss/fork-versions/default/normalize";
+
+@import "block/index";

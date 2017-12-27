@@ -69,6 +69,7 @@ gulp.task('sprite', function () {
 
 gulp.task('scripts', function () {
   return gulp.src([
+    'node_modules/jquery/dist/jquery.js',
     'src/js/*.js'
   ])
     .pipe(concat('scripts.js'))
