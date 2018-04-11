@@ -26,5 +26,9 @@
     "normalize-scss": "^7.0.0",
     "postcss-cssnext": "^3.0.2",
     "run-sequence": "^2.2.0"
+  },
+  "scripts": {
+    "start": "gulp serve",
+    "build": "gulp build"
   }
 }
