@@ -1,6 +1,6 @@
 "use strict";
 
-var gulp = require('gulp'),
+let gulp = require('gulp'),
     sass = require('gulp-sass'),
     postcss = require('gulp-postcss'),
     autoprefixer = require('autoprefixer'),
@@ -17,18 +17,10 @@ var gulp = require('gulp'),
     merge = require('merge-stream'),
     twig = require('gulp-twig'),
     svgstore = require('gulp-svgstore'),
-    svgmin = require('gulp-svgmin'),
-    runSequence = require('run-sequence').use(gulp);
+    svgmin = require('gulp-svgmin');
 
-gulp.task('templates', function () {
-    return gulp.src('src/view/*.twig')
-        .pipe(twig())
-        .pipe(gulp.dest('build'))
-        .pipe(server.reload({stream: true}));
-});
-
-gulp.task('styles', function () {
-    var processors = [
+function styles() {
+    let processors = [
         autoprefixer({
             browsers: ['last 2 versions']
         }),
@@ -41,9 +33,16 @@ gulp.task('styles', function () {
         .pipe(sourcemaps.write())
         .pipe(gulp.dest('build/css'))
         .pipe(server.reload({stream: true}));
-});
+}
 
-gulp.task('images', function () {
+function templates() {
+    return gulp.src('src/view/*.twig')
+        .pipe(twig())
+        .pipe(gulp.dest('build'))
+        .pipe(server.reload({stream: true}));
+}
+
+function images() {
     return gulp.src('src/img/**/*.+(jpg,png,svg)')
         .pipe(imagemin({
             progressive: true,
@@ -52,24 +51,24 @@ gulp.task('images', function () {
         }))
         .pipe(gulp.dest('build/img'))
         .pipe(server.reload({stream: true}));
-});
+}
 
-gulp.task('sprite', function () {
-    var spriteData = gulp.src('src/img/icons/*.png').pipe(spritesmith({
+function sprite() {
+    let spriteData = gulp.src('src/img/icons/*.png').pipe(spritesmith({
         imgName: '../img/sprite.png',
         cssName: 'sprite.scss',
         algorithm: 'top-down'
     }));
-    var imgStream = spriteData.img
+    let imgStream = spriteData.img
         .pipe(gulp.dest('build/img'));
 
-    var cssStream = spriteData.css
+    let cssStream = spriteData.css
         .pipe(gulp.dest('src/scss/'));
 
     return merge(imgStream, cssStream);
-});
+}
 
-gulp.task("svg", function() {
+function svg() {
     return gulp.src('src/img/svg/*.svg')
         .pipe(svgmin())
         .pipe(svgstore({
@@ -78,9 +77,9 @@ gulp.task("svg", function() {
         .pipe(rename("symbols.svg"))
         .pipe(gulp.dest("build/img/svg"))
         .pipe(server.reload({stream: true}));
-});
+}
 
-gulp.task('scripts', function () {
+function scripts() {
     return gulp.src([
         'node_modules/jquery/dist/jquery.js',
         'node_modules/swiper/dist/js/swiper.js',
@@ -93,17 +92,15 @@ gulp.task('scripts', function () {
         .pipe(uglify())
         .pipe(gulp.dest('build/js'))
         .pipe(server.reload({stream: true}));
-});
+}
 
-gulp.task('clean', function () {
+function clean() {
     del('build/*');
-});
+}
 
-gulp.task('build', function (callback) {
-    runSequence('clean', 'templates', 'styles', 'scripts', 'images', 'sprite', 'svg', callback)
-});
+function watch() {
+    serve();
 
-gulp.task("serve", ['templates', 'styles', 'scripts', 'images', 'sprite', 'svg'], function () {
     server.init({
         server: "build",
         notify: false,
@@ -111,8 +108,37 @@ gulp.task("serve", ['templates', 'styles', 'scripts', 'images', 'sprite', 'svg']
         ui: false
     });
 
-    gulp.watch("src/**/*.{scss,sass}", ["styles"]);
-    gulp.watch("src/**/*.+(html|twig)", ["templates"]);
-    gulp.watch("src/**/*.js", ["scripts"]);
-    gulp.watch("src/**/*.+(jpg,png,svg)", ["images"]);
-});
+    gulp.watch("src/**/*.{scss,sass}", styles);
+    gulp.watch("src/**/*.+(html|twig)", templates);
+    gulp.watch("src/**/*.js", scripts);
+    gulp.watch("src/**/*.+(jpg,png,svg)", images);
+}
+
+function copy() {
+    return gulp.src('src/fonts/*')
+        .pipe(gulp.dest('build/fonts/'));
+}
+
+gulp.task('templates', templates);
+
+gulp.task('styles', styles);
+
+gulp.task('images', images);
+
+gulp.task('sprite', sprite);
+
+gulp.task("svg", svg);
+
+gulp.task('scripts', scripts);
+
+gulp.task('clean', clean);
+
+gulp.task('copy', copy);
+
+let build = gulp.series(clean, templates, styles, scripts, images, sprite, svg, copy);
+
+let serve = gulp.series(templates, styles, scripts, images, sprite, svg);
+
+gulp.task('build', build);
+
+gulp.task("serve", watch);
